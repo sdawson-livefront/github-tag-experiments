@@ -1,0 +1,34 @@
+name: Add Ready Label on PR
+
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+jobs:
+  add-ready-label:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check PR title for "ready"
+        if: github.event.pull_request.title != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.pull_request.title.toLowerCase();
+            const hasReady = title.includes('ready');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            if (hasReady) {
+              console.log(`PR title contains 'ready'. Adding label...`);
+
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number,
+                labels: ['ready'],
+              });
+            } else {
+              console.log(`PR title does not contain 'ready'. No label added.`);
+            }
